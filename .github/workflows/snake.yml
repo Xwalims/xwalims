@@ -2,9 +2,9 @@ name: Generate contribution snake
 
 on:
   schedule:
-    # Once a day. The snake reflects the contribution graph, so regenerating it
-    # more often than that just burns Actions minutes for a picture nobody
-    # sees changing.
+    # Once a day. The snake mirrors the contribution graph, so running it more
+    # often than that only burns Actions minutes on a picture nobody sees
+    # changing. Off the hour to avoid the busiest scheduling minute.
     - cron: "17 3 * * *"
   workflow_dispatch:
 
@@ -20,11 +20,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Generate the SVGs
-        uses: PlatHirsch/github-action-snake@v3
+        # Platane/snk is the tool itself; svg-only skips the GIF render, which
+        # is what this README needs and is noticeably faster.
+        uses: Platane/snk/svg-only@v3
         with:
           github_user_name: ${{ github.repository_owner }}
-          # Written to the repository root so the README can reference them
-          # directly, without a dist/ prefix.
+          # Written to the repository root so the README references them
+          # directly, with no dist/ prefix to keep in sync.
           outputs: |
             github-snake.svg
             github-snake-dark.svg?palette=github-dark
