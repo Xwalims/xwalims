@@ -1,0 +1,30 @@
+name: Generate contribution snake
+
+on:
+  schedule:
+    # Once a day. The snake reflects the contribution graph, so regenerating it
+    # more often than that just burns Actions minutes for a picture nobody
+    # sees changing.
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: snake
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate the SVGs
+        uses: PlatHirsch/github-action-snake@v3
+        with:
+          github_user_name: ${{ github.repository_owner }}
+          # Written to the repository root so the README can reference them
+          # directly, without a dist/ prefix.
+          outputs: |
+            github-snake.svg
+            github-snake-dark.svg?palette=github-dark
