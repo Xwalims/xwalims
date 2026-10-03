@@ -4,10 +4,10 @@
 
 <table>
   <tr>
-    <td width="68%" valign="top">
-      <img src="https://github-readme-stats.shion.dev/api?username=xwalims&theme=dark&hide_border=false&include_all_commits=false&count_private=false" alt="GitHub stats" />
+    <td width="68%" valign="middle">
+      <img src="https://github-readme-stats.shion.dev/api?username=xwalims&theme=dark&hide_border=true&include_all_commits=false&count_private=false" alt="GitHub stats" />
     </td>
-    <td width="32%" valign="top">
+    <td width="32%" valign="middle">
       <img src="https://count.getloli.com/@Xwalims?theme=rule34" alt="Visitor count" width="100%" />
     </td>
   </tr>
