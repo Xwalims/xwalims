@@ -3,25 +3,30 @@ name: Generate contribution snake
 on:
   schedule:
     # Once a day. The snake mirrors the contribution graph, so running it more
-    # often than that only burns Actions minutes on a picture nobody sees
-    # changing. Off the hour to avoid the busiest scheduling minute.
+    # often only burns Actions minutes on a picture nobody sees changing.
+    # Off the hour to avoid the busiest scheduling minute.
     - cron: "17 3 * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
 
+# Let a run finish rather than cancelling it half-way, so a half-written SVG is
+# never committed.
 concurrency:
   group: snake
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   generate:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
       - name: Generate the SVGs
-        # Platane/snk is the tool itself; svg-only skips the GIF render, which
-        # is what this README needs and is noticeably faster.
+        # Platane/snk is the generator itself; svg-only skips the GIF render,
+        # which this README does not use and is noticeably faster.
         uses: Platane/snk/svg-only@v3
         with:
           github_user_name: ${{ github.repository_owner }}
@@ -30,3 +35,28 @@ jobs:
           outputs: |
             github-snake.svg
             github-snake-dark.svg?palette=github-dark
+
+      - name: Commit the regenerated SVGs
+        # svg-only writes to the workspace but does NOT commit: it is designed
+        # to be followed by exactly this step. Without it the workflow succeeds
+        # and the README's images stay 404, which is what happened on the first
+        # run.
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add github-snake.svg github-snake-dark.svg
+          if git diff --cached --quiet; then
+            echo "snake unchanged, nothing to commit"
+            exit 0
+          fi
+          git commit -m "chore: regenerate contribution snake"
+          # A scheduled run must never fail on a concurrent push to main.
+          for i in 1 2 3; do
+            if git push; then exit 0; fi
+            echo "push attempt $i failed, retrying"
+            sleep 5
+            git pull --rebase --autostash origin main
+          done
+          echo "could not push after 3 attempts" >&2
+          exit 1
